@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="MinaTest.vcxproj" Id="deded420-4e1b-4c5e-ad30-0271a2248416" />
+</Solution>
