@@ -42,6 +42,9 @@ void FixedUpdate(void*)
         if (!ok) {
             Mina->Log("[%s] Save export failed.\n", MOD_NAME);
         }
+        else {
+            Mina->SoundPlay("bike_bell");
+        }
     }
     if (Mina->IsKeyDown(YC_KEY_V) && isCtrl || Mina->IsButtonDown(YC_INPUT_L3) && isR2)
     {
@@ -60,13 +63,17 @@ void FixedUpdate(void*)
     if (Mina->IsKeyDown(YC_KEY_B) && isCtrl || Mina->IsButtonDown(YC_INPUT_RSTICK_LEFT) && isR2)
     {
         if (saveSlot > 1) {
+            Mina->SoundPlay("window_close");
             saveSlot -= 1;
         }
     }
     if (Mina->IsKeyDown(YC_KEY_N) && isCtrl || Mina->IsButtonDown(YC_INPUT_RSTICK_RIGHT) && isR2)
     {
-        if (saveSlot < SAVE_SLOT_MAX)
-        saveSlot += 1;
+        if (saveSlot < SAVE_SLOT_MAX) {
+            Mina->SoundPlay("window_open");
+            saveSlot += 1;
+        }
+
     }
 
 }

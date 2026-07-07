@@ -133,7 +133,7 @@
       <EnableSegmentHeap>true</EnableSegmentHeap>
     </Manifest>
     <PostBuildEvent>
-      <Command>xcopy $(OUTDIR)\* "C:\Users\SBDWolf\AppData\Roaming\Yacht Club Games\Mina the Hollower\mods\MinaTest" /y</Command>
+      <Command>xcopy $(OUTDIR)\* "C:\Users\SBDWolf\AppData\Roaming\Yacht Club Games\Mina the Hollower\mods\PracticeMod" /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
