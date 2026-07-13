@@ -127,7 +127,6 @@ bool SaveCurrentSlotToFile(const std::string& fileName)
         }
     }
 
-    Mina->PlayerFlushToSave();
     char* rawPtr = Mina->GetActiveSaveSlotContents();
     if (!rawPtr) {
         Mina->Log("[%s] GetActiveSaveSlotContents returned null\n", MOD_NAME);
