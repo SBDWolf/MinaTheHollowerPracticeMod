@@ -17,6 +17,7 @@ int saveSlot = 1;
 void FixedUpdate(void*);
 bool LoadSaveFromFile(const std::string& filePath);
 bool SaveCurrentSlotToFile(const std::string& filePath);
+static bool ExtractSaveSlotFromGameSave(const std::string& fullSaveData, int slotIndex, std::string& outSlotData);
 static std::string GetEnvOrDefault(const char* var, const std::string& fallback);
 
 extern "C"
@@ -36,8 +37,8 @@ void FixedUpdate(void*)
     if (Mina->IsKeyDown(YC_KEY_C) && isCtrl || Mina->IsButtonDown(YC_INPUT_R3) && isR2)
     {
         Mina->Log("[%s] Exporting save to file.\n", MOD_NAME);
-        char buf[3];
-        snprintf(buf, sizeof(buf), "%02d", saveSlot);
+        char buf[5];
+        snprintf(buf, sizeof(buf), "%03d", saveSlot);
         bool ok = SaveCurrentSlotToFile(std::string("custom_save") + buf + ".sv");
         if (!ok) {
             Mina->Log("[%s] Save export failed.\n", MOD_NAME);
@@ -49,8 +50,8 @@ void FixedUpdate(void*)
     if (Mina->IsKeyDown(YC_KEY_V) && isCtrl || Mina->IsButtonDown(YC_INPUT_L3) && isR2)
     {
         Mina->Log("[%s] Importing save from file.\n", MOD_NAME);
-        char buf[3];
-        snprintf(buf, sizeof(buf), "%02d", saveSlot);
+        char buf[5];
+        snprintf(buf, sizeof(buf), "%03d", saveSlot);
         bool ok = LoadSaveFromFile(std::string("custom_save") + buf + ".sv");
         if (ok) {
             Mina->PlayerRestoreFromSave();
@@ -115,28 +116,44 @@ bool SaveCurrentSlotToFile(const std::string& fileName)
 {
     std::filesystem::path base;
     base = GetEnvOrDefault("APPDATA", "C:\\Users\\Default\\AppData\\Roaming");
-    std::filesystem::path filePath = base / "Yacht Club Games" / "Mina the Hollower" / "mods" / MOD_NAME / "saves" / fileName;
 
-    auto finalFilePath = std::filesystem::path(filePath).lexically_normal();
+    std::filesystem::path gameSavePath = base / "Yacht Club Games" / "Mina the Hollower" / "saveData.yc";
+    if (!std::filesystem::exists(gameSavePath)) {
+        Mina->Log("[%s] Game save file not found.\n", MOD_NAME);
+        return false;
+    }
 
-    auto parent = finalFilePath.parent_path();
-    if (!parent.empty() && !std::filesystem::exists(parent)) {
-        if (!std::filesystem::create_directories(parent)) {
-            Mina->Log("[%s] Failed to create directory: \n", MOD_NAME);
+    std::filesystem::path modSaveDir = base / "Yacht Club Games" / "Mina the Hollower" / "mods" / MOD_NAME / "saves";
+    std::filesystem::path outFilePath = modSaveDir / fileName;
+
+
+    auto finalOutFilePath = std::filesystem::path(outFilePath).lexically_normal();
+
+    if (!std::filesystem::exists(modSaveDir)) {
+        if (!std::filesystem::create_directories(modSaveDir)) {
+            Mina->Log("[%s] Failed to create directory.\n", MOD_NAME);
             return false;
         }
     }
 
-    char* rawPtr = Mina->GetActiveSaveSlotContents();
-    if (!rawPtr) {
-        Mina->Log("[%s] GetActiveSaveSlotContents returned null\n", MOD_NAME);
+    std::ifstream gameFile(gameSavePath, std::ios::binary);
+    if (!gameFile) {
+        Mina->Log("[%s] Failed to open game save file.\n", MOD_NAME);
+        return false;
+    }
+    std::string gameSaveData((std::istreambuf_iterator<char>(gameFile)), std::istreambuf_iterator<char>());
+    gameFile.close();
+
+    int activeSlot = Mina->GetActiveSaveSlot();
+    std::string extractedSlot;
+    if (!ExtractSaveSlotFromGameSave(gameSaveData, activeSlot, extractedSlot)) {
+        Mina->Log("[%s] Failed to extract slot %d from saveData.yc\n", MOD_NAME, activeSlot);
         return false;
     }
 
-    std::string saveData(rawPtr);
-    Mina->Free(rawPtr);
+    std::string saveData = "[YCD Version: 1]\nSaveSlot\n" + extractedSlot;
 
-    std::ofstream file(finalFilePath, std::ios::binary | std::ios::trunc);
+    std::ofstream file(finalOutFilePath, std::ios::out | std::ios::trunc);
     if (!file) {
         Mina->Log("[%s] Failed to open file for writing.\n", MOD_NAME);
         return false;
@@ -153,6 +170,66 @@ bool SaveCurrentSlotToFile(const std::string& fileName)
     Mina->Log("[%s] Saved file.\n", MOD_NAME);
     return true;
 }
+
+static bool ExtractSaveSlotFromGameSave(const std::string& fullSaveData, int slotIndex, std::string& outSlotData)
+{
+    size_t startPos = fullSaveData.find("m_rSlots: [");
+    if (startPos == std::string::npos) {
+        return false;
+    }
+
+    size_t cursor = startPos;
+    int foundSlots = 0;
+    size_t dataLength = fullSaveData.length();
+
+    while (cursor < dataLength)
+    {
+        size_t slotKeyPos = fullSaveData.find("SaveSlot", cursor);
+        if (slotKeyPos == std::string::npos) {
+            break;
+        }
+
+        size_t bracePos = fullSaveData.find('{', slotKeyPos);
+        if (bracePos == std::string::npos || bracePos >= dataLength) {
+            break;
+        }
+
+        // find matching closing brace
+        int depth = 0;
+        size_t i = bracePos;
+        while (i < dataLength)
+        {
+            char c = fullSaveData[i];
+            if (c == '{') {
+                depth++;
+            }
+            else if (c == '}') {
+                depth--;
+            }
+
+            if (depth == 0) {
+                break;
+            }
+            i++;
+        }
+
+        if (depth != 0) {
+            break;
+        }
+        size_t slotEnd = i;
+
+        if (foundSlots == slotIndex)
+        {
+            outSlotData = fullSaveData.substr(bracePos, slotEnd - bracePos + 1);
+            return true;
+        }
+
+        foundSlots++;
+        cursor = slotEnd + 1;
+    }
+    return false;
+}
+
 
 static std::string GetEnvOrDefault(const char* var, const std::string& fallback)
 {
