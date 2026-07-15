@@ -35,18 +35,24 @@ The list of valid key options can be looked up [here](https://github.com/YachtCl
 
 There is also an `EnableLogging` option, which will control whether some logs are written to `mod.log` or not. This is for debug purposes, so feel free to leave that on false for general use.
 
+## Download
+You can download this mod from the **[Releases Page](https://github.com/SBDWolf/MinaTheHollowerPracticeMod/releases)**.
+
 ## Installation
 - On Steam, switch to the game's experimental-modding branch (right click on Mina the Hollower in your library, select Properties, then Game Versions & Beta)
 - Still under the game's properties, switch to the General tab, then add `-mod -mod-allow-code` to the Launch Options.
-- Download the Practice Mod here for your Operating System, and extract it to your mods folder. On Windows, this is in `%AppData%\Yacht Club Games\Mina the Hollower\mods`. On Linux, this is in `./.local/share/Yacht Club Games\Mina the Hollower\mods`. In both cases, you should create the `mods` folder if it doesn't exist.
-  - At the end of this, you should have a `mods` folder at save level of `saveData.yc`, and inside that `mods` folder, you should have a `PracticeMod` folder containing all the relevant files.
+- Download the Practice Mod [here](https://github.com/SBDWolf/MinaTheHollowerPracticeMod/releases) for your Operating System if you haven't already, and extract it to your mods folder.
+  - On Windows, this is in `%AppData%\Yacht Club Games\Mina the Hollower\mods`.
+  - On Linux, this is in `./.local/share/Yacht Club Games\Mina the Hollower\mods`.
+  - In both cases, you should create the `mods` folder if it doesn't exist.
+    - At the end of this, you should have a `mods` folder at save level of `saveData.yc`, and inside that `mods` folder, you should have a `PracticeMod` folder containing all the relevant files.
 - Launch the game. The mod should hopefully be running!
 - The first boot will generate the aforementioned `PracticeMod.cfg`. You can edit that file to change your keybinds.
 
 ## Building
-If you're a regular user looking to simply acquire the practice mod to use it for youself, you do not need to do this! Head on over to the releases page and download from there. This section is just for those looking to develop themselves, or who want to build directly form the source code for other reasons.
+If you're a regular user looking to simply acquire the practice mod to use it for youself, you do not need to do this! Head on over to the [releases page](https://github.com/SBDWolf/MinaTheHollowerPracticeMod/releases) and download from there. This section is just for those looking to develop themselves, or who want to build directly form the source code for other reasons.
 
-There's probably a few different ways of building this, but what i do is:
+There's probably a few different ways of building this, but what I do is:
 ### Windows
 Open `CMakeLists.txt` with Visual Studio (you might need to udpate Visual Studio to a newer version in order to be able to open this file), then build (either from the Build dropdown > Build {Project Name}, or by hitting Ctrl+B). You can select the build profile to be `Release|x64` towards the middle-top.
 
@@ -56,7 +62,7 @@ There's also a post-build action that automatically moves the compiled `mod.dll`
 Open the project directory in a terminal and run `build_linux.sh`. `mod.so` will be placed inside the newly-created `build` directory.
 
 ## Packaging
-Again, if you're a regular user, you don't need to do this, you can download the mod from the releases page.
+Again, if you're a regular user, you don't need to do this, you can download the mod from the [releases page](https://github.com/SBDWolf/MinaTheHollowerPracticeMod/releases).
 
 Once the .dll and .so have been built, you can package them up into zips ready for release using either `package\package.bat` on Windows, or `package/package.sh` on Linux. Either script will automatically take both the built `mod.dll` and `mod.so` and package them up into zips along with the other needed files.
 
