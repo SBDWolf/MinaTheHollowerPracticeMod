@@ -43,7 +43,7 @@ You can download this mod from the **[Releases Page](https://github.com/SBDWolf/
 - Still under the game's properties, switch to the General tab, then add `-mod -mod-allow-code` to the Launch Options.
 - Download the Practice Mod [here](https://github.com/SBDWolf/MinaTheHollowerPracticeMod/releases) for your Operating System if you haven't already, and extract it to your mods folder.
   - On Windows, this is in `%AppData%\Yacht Club Games\Mina the Hollower\mods`.
-  - On Linux, this is in `./.local/share/Yacht Club Games\Mina the Hollower\mods`.
+  - On Linux, this is in `./.local/share/Yacht Club Games/Mina the Hollower/mods`.
   - In both cases, you should create the `mods` folder if it doesn't exist.
     - At the end of this, you should have a `mods` folder at save level of `saveData.yc`, and inside that `mods` folder, you should have a `PracticeMod` folder containing all the relevant files.
 - Launch the game. The mod should hopefully be running!
