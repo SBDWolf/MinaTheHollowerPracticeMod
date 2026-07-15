@@ -355,7 +355,6 @@ static bool ExtractSaveSlotFromGameSave(const std::string& fullSaveData, int slo
 }
 
 static void LoadOrCreateConfig() {
-    ModLog("Is this even getting called?");
     auto cfgPath = GetConfigPath();
     if (!std::filesystem::exists(cfgPath)) {
         std::filesystem::create_directories(cfgPath.parent_path());
@@ -368,11 +367,7 @@ static void LoadOrCreateConfig() {
     }
 
     std::ifstream file(cfgPath);
-    if (!file) {
-        ModLog("Could not read the file?");
-        return;
-    }
-    ModLog("File was read I guess.");
+    if (!file) return;
     std::string line;
     while (std::getline(file, line)) {
         if (line.empty() || line[0] == '#' || line[0] == ';') continue;
