@@ -1,5 +1,13 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#ifdef _WIN32
+    #define MOD_API __declspec(dllexport)
+#elif defined(__linux__)
+    #define MOD_API __attribute__((visibility("default")))
+#else
+    #define MOD_API
+#endif
+
 #define SAVE_SLOT_MAX 999
 #define MOD_NAME "PracticeMod"
 
@@ -8,6 +16,9 @@
 #include <string>
 #include <iostream>
 #include <filesystem>
+#include <vector>
+#include <sstream>
+#include <iterator>
 #include "MinaModAPI.h"
 #include "MinaModEnums.h"
 #include <cstdarg>
@@ -66,9 +77,10 @@ static void ParseSlotDisplayName(const std::filesystem::path& filePath, std::str
 static void ModLog(const char* format, ...);
 static void LoadOrCreateConfig();
 static std::filesystem::path GetConfigPath();
+static std::filesystem::path GetGameBaseDir();
 
 extern "C"
-__declspec(dllexport)
+MOD_API
 void MinaMod_Init(MinaModAPI* mm)
 {
     Mina = mm;
@@ -90,11 +102,11 @@ void CustomUpdate(void*)
 
     if (IsActionBeingActivated(ModConfigs.SaveBind))
     {
-        ModLog("Exporting save to file.\n");
+        ModLog("Exporting save to file.");
         auto slotPath = GetSlotFilePath(saveSlot);
         bool ok = SaveCurrentSlotToFile(slotPath.string());
         if (!ok) {
-            ModLog("Save export failed.\n");
+            ModLog("Save export failed.");
         }
         else {
             Mina->SoundPlay("bike_bell");
@@ -105,7 +117,7 @@ void CustomUpdate(void*)
     }
     if (IsActionBeingActivated(ModConfigs.LoadBind))
     {
-        ModLog("Importing save from file.\n");
+        ModLog("Importing save from file.");
         auto slotPath = GetSlotFilePath(saveSlot);
         bool ok = LoadSaveFromFile(slotPath.string());
         if (ok) {
@@ -113,7 +125,7 @@ void CustomUpdate(void*)
             Mina->StartActiveSaveSlot();
         }
         else {
-            ModLog("Save import failed.\n");
+            ModLog("Save import failed.");
         }
     }
     if (IsActionBeingActivated(ModConfigs.SlotDownBind))
@@ -199,8 +211,7 @@ bool SaveCurrentSlotToFile(const std::string& filePath)
         }
     }
 
-    std::string gameSavePath = GetEnvOrDefault("APPDATA", "C:\\Users\\Default\\AppData\\Roaming")
-        + "/Yacht Club Games/Mina the Hollower/saveData.yc";
+    std::string gameSavePath = (GetGameBaseDir() / "saveData.yc").string();
     std::ifstream gameFile(gameSavePath, std::ios::binary);
     if (!gameFile) {
         ModLog("Failed to open game save file.");
@@ -238,8 +249,8 @@ bool SaveCurrentSlotToFile(const std::string& filePath)
 
 static std::filesystem::path GetSlotFilePath(int slotIndex)
 {
-    std::filesystem::path base = GetEnvOrDefault("APPDATA", "C:\\Users\\Default\\AppData\\Roaming");
-    std::filesystem::path savesDir = base / "Yacht Club Games" / "Mina the Hollower" / "mods" / MOD_NAME / "saves";
+    std::filesystem::path base = GetGameBaseDir();
+    std::filesystem::path savesDir = base / "mods" / MOD_NAME / "saves";
 
     if (!std::filesystem::exists(savesDir))
     {
@@ -344,6 +355,7 @@ static bool ExtractSaveSlotFromGameSave(const std::string& fullSaveData, int slo
 }
 
 static void LoadOrCreateConfig() {
+    ModLog("Is this even getting called?");
     auto cfgPath = GetConfigPath();
     if (!std::filesystem::exists(cfgPath)) {
         std::filesystem::create_directories(cfgPath.parent_path());
@@ -356,8 +368,11 @@ static void LoadOrCreateConfig() {
     }
 
     std::ifstream file(cfgPath);
-    if (!file) return;
-
+    if (!file) {
+        ModLog("Could not read the file?");
+        return;
+    }
+    ModLog("File was read I guess.");
     std::string line;
     while (std::getline(file, line)) {
         if (line.empty() || line[0] == '#' || line[0] == ';') continue;
@@ -518,8 +533,20 @@ static void ModLog(const char* format, ...) {
 }
 
 static std::filesystem::path GetConfigPath() {
-    return std::filesystem::path(GetEnvOrDefault("APPDATA", "C:\\Users\\Default\\AppData\\Roaming"))
-        / "Yacht Club Games" / "Mina the Hollower" / "mods" / MOD_NAME / "PracticeMod.cfg";
+    return GetGameBaseDir() / "mods" / MOD_NAME / "PracticeMod.cfg";
+}
+
+static std::filesystem::path GetGameBaseDir() {
+#ifdef _WIN32
+    const char* appdata = std::getenv("APPDATA");
+    if (appdata) return std::filesystem::path(appdata) / "Yacht Club Games" / "Mina the Hollower";
+#elif defined(__linux__)
+    const char* xdg = std::getenv("XDG_DATA_HOME");
+    if (!xdg) xdg = std::getenv("HOME");
+    if (xdg) return std::filesystem::path(xdg) / ".local" / "share" / "Yacht Club Games" / "Mina the Hollower";
+#endif
+    // fallback
+    return std::filesystem::path("C:\\Users\\Default\\AppData\\Roaming") / "Yacht Club Games" / "Mina the Hollower";
 }
 
 static std::string GetEnvOrDefault(const char* var, const std::string& fallback)
