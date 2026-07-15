@@ -37,7 +37,7 @@ struct DebugMessage
 
 struct ModConfig
 {
-    bool enableLogging = true;
+    bool enableLogging = false;
     std::vector<std::string> SaveBind;
     std::vector<std::string> LoadBind;
     std::vector<std::string> SlotDownBind;
@@ -360,7 +360,7 @@ static void LoadOrCreateConfig() {
         std::filesystem::create_directories(cfgPath.parent_path());
         std::ofstream file(cfgPath);
         if (file) {
-            file << "[General]\nEnableLogging = true\n\n";
+            file << "[General]\nEnableLogging = false\n\n";
             file << "[Keybinds]\nSaveBind = R2,R3\nLoadBind = R2,L3\nSlotDownBind = R2,RSTICK_LEFT\nSlotUpBind = R2,RSTICK_RIGHT\n";
             file.close();
         }
