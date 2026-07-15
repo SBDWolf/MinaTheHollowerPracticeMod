@@ -1,4 +1,4 @@
-# MinaTest
+# Mina Practice Mod
 A practice mode for speedrunning Mina the Hollower, for Windows and Linux.
 
 ## Features
